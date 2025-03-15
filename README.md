@@ -31,6 +31,8 @@ CMakeLists.txt - build file
 - print - Display all entries currently stored in the address book with their complete details
 - save filename - Save the current address book to a file, where filename is the path to save to
 - load filename - Load an address book from a file, where filename is the path to load from
+- export name - Export person to address book\n"
+- import name - import person to address book\n"
 - help - Show the available commands and their descriptions
 - exit - Close the address book program and return to the system prompt
 
