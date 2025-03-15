@@ -164,7 +164,7 @@ void exportContact(AddressBook book, std::string &name) {
 }
 
 void importContact(AddressBook book, std::string &name) {
-    std::ifstream file("../books/" + name);
+    std::ifstream file("../books/contacts/" + name + ".txt");
     if (!file.is_open()) {
         throw std::runtime_error("Cannot find person to import");
     }
@@ -330,9 +330,14 @@ void processCommand(const std::string &command, std::string args, AddressBook &b
         } catch (const std::exception &e) {
             std::cout << "Error exporting person " << e.what() << std::endl;
         }
-    }
-
-    else {
+    } else if (command == "import") {
+        try {
+            importContact(book, args);
+            std::cout << "Contact " << args << " imported" << std::endl;
+        } catch (const std::exception &e) {
+            std::cout << "Error importing person " << e.what() << std::endl;
+        }
+    } else {
         std::cout << "Unknown command. Type 'help' for available commands.\n";
     }
 }
