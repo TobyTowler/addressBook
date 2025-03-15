@@ -1,3 +1,0 @@
-/home/toby/Programming/CPP/addressBook/build/CMakeFiles/addressBook.dir
-/home/toby/Programming/CPP/addressBook/build/CMakeFiles/edit_cache.dir
-/home/toby/Programming/CPP/addressBook/build/CMakeFiles/rebuild_cache.dir
