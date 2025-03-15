@@ -5,7 +5,9 @@
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 Country parseCountry(const std::string &countryStr) {
@@ -76,7 +78,7 @@ void removePerson(AddressBook &book, const std::string &name) {
 }
 
 AddressBook readAddressBookFromFile(const std::string &filePath) {
-    std::ifstream file(filePath);
+    std::ifstream file("../books/" + filePath);
     if (!file.is_open()) {
         return AddressBook();
     }
@@ -119,7 +121,7 @@ AddressBook readAddressBookFromFile(const std::string &filePath) {
 }
 
 void writeAddressBookToFile(const std::string &filePath, const AddressBook &addressBook) {
-    std::ofstream file(filePath);
+    std::ofstream file("../books/" + filePath);
     if (!file.is_open()) {
         throw std::runtime_error("Could not open file for writing: " + filePath);
     }
@@ -136,6 +138,68 @@ void writeAddressBookToFile(const std::string &filePath, const AddressBook &addr
              << "\n";
     }
 }
+
+void exportContact(AddressBook book, std::string &name) {
+
+    std::shared_ptr<std::vector<Person>> people = book.findByName(name);
+
+    if (people->empty()) {
+        throw std::runtime_error("Contact does not exist");
+    }
+
+    std::ofstream file("../books/contacts/" + name + ".txt");
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file for writing: " + name);
+    }
+
+    for (const auto &person : *people) {
+        const Address &address = person.getAddress();
+
+        file << person.getFirstName() << "," << person.getLastName() << ","
+             << person.getPhoneNumber() << "," << person.getEmailAddress() << ","
+             << address.getHouseNumber() << "," << address.getStreet() << "," << address.getTown()
+             << "," << address.getPostCode() << "," << countryToString(address.getCountry())
+             << "\n";
+    }
+}
+
+void importContact(AddressBook book, std::string &name) {
+    std::ifstream file("../books/" + name);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot find person to import");
+    }
+
+    std::string line;
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string firstName, lastName, phoneNumber, email;
+        std::string street, town, postCode, countryStr;
+        std::string houseNumStr;
+
+        std::getline(ss, firstName, ',');
+        std::getline(ss, lastName, ',');
+        std::getline(ss, phoneNumber, ',');
+        std::getline(ss, email, ',');
+
+        std::getline(ss, houseNumStr, ',');
+        std::getline(ss, street, ',');
+        std::getline(ss, town, ',');
+        std::getline(ss, postCode, ',');
+        std::getline(ss, countryStr);
+
+        int houseNumber = std::stoi(houseNumStr);
+
+        Country country = parseCountry(countryStr);
+
+        Address address(street, town, postCode, houseNumber, country);
+        Person person(firstName, lastName, email, phoneNumber, address);
+
+        // Add to address book
+        book.addPerson(person);
+    }
+}
+
 void printHelp() {
     std::cout << "\nAvailable commands:\n"
               << "  add                    - Add a new person\n"
@@ -148,6 +212,8 @@ void printHelp() {
               << "  print                  - Display all entries\n"
               << "  save filename          - Save address book to file\n"
               << "  load filename          - Load address book from file\n"
+              << "  export name            - Export person to address book\n"
+              << "  import name            - import person to address book\n"
               << "  help                   - Show this help message\n"
               << "  exit                   - Exit the program\n"
               << std::endl;
@@ -257,7 +323,16 @@ void processCommand(const std::string &command, std::string args, AddressBook &b
         } catch (const std::exception &e) {
             std::cout << "Error loading file: " << e.what() << std::endl;
         }
-    } else {
+    } else if (command == "export") {
+        try {
+            exportContact(book, args);
+            std::cout << "Contact " << args << " exported" << std::endl;
+        } catch (const std::exception &e) {
+            std::cout << "Error exporting person " << e.what() << std::endl;
+        }
+    }
+
+    else {
         std::cout << "Unknown command. Type 'help' for available commands.\n";
     }
 }
@@ -272,7 +347,7 @@ void runAddressBookRepl(AddressBook &addressBook) {
         std::getline(std::cin, input);
 
         if (input == "exit") {
-            writeAddressBookToFile("./AddressBook.txt", addressBook);
+            writeAddressBookToFile("AddressBook.txt", addressBook);
             break;
         }
 
